@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Daily Tracker">
+<meta name="theme-color" content="#f8fafc">
+<title>Daily Tracker</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f1f5f9;
+  --surface:#ffffff;
+  --surface2:#e2e8f0;
+  --border:#e2e8f0;
+  --border2:#cbd5e1;
+  --text:#0f172a;
+  --text2:#475569;
+  --text3:#94a3b8;
+  --accent:#2563eb;
+  --accent-light:#dbeafe;
+  --green:#059669;
+  --green-light:#d1fae5;
+  --orange:#d97706;
+  --orange-light:#fef3c7;
+  --red:#dc2626;
+  --red-light:#fee2e2;
+  --radius:16px;
+  --radius-sm:12px;
+  --shadow:0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md:0 4px 6px rgba(0,0,0,0.05), 0 2px 4px rgba(0,0,0,0.04);
+  --safe-top:env(safe-area-inset-top, 0px);
+  --safe-bottom:env(safe-area-inset-bottom, 0px);
+}
+
+html{
+  font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','SF Pro Text',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);font-size:16px;
+  -webkit-text-size-adjust:100%;
+  -webkit-tap-highlight-color:transparent;
+  height:100%;
+  overflow:hidden;
+}
+body{
+  height:100%;overflow:hidden;
+  display:flex;flex-direction:column;
+  padding-top:var(--safe-top);
+  overscroll-behavior:none;
+}
+button{
+  font:inherit;color:inherit;background:none;border:none;
+  cursor:pointer;-webkit-appearance:none;
+  touch-action:manipulation;
+}
+input,textarea{
+  font:inherit;color:inherit;-webkit-appearance:none;
+  touch-action:manipulation;
+}
+
+/* ===== HEADER ===== */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px 10px;flex-shrink:0;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+}
+.header-left{display:flex;flex-direction:column;gap:2px}
+.header-date{font-size:1.15rem;font-weight:700;letter-spacing:-0.02em;color:var(--text)}
+.header-sub{font-size:0.78rem;color:var(--text2);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.streak-badge{
+  display:inline-flex;align-items:center;gap:3px;
+  background:linear-gradient(135deg,#f59e0b,#ea580c);color:#fff;
+  font-size:0.68rem;font-weight:700;padding:2px 8px;border-radius:20px;
+}
+.nav-arrows{display:flex;gap:6px;align-items:center}
+.nav-btn{
+  width:42px;height:42px;display:flex;align-items:center;justify-content:center;
+  border-radius:var(--radius-sm);background:var(--bg);font-size:1.3rem;
+  color:var(--text2);font-weight:600;
+  transition:background .15s;
+}
+.nav-btn:active{background:var(--surface2)}
+.nav-btn.today-btn{
+  font-size:0.78rem;font-weight:700;width:auto;padding:0 16px;
+  color:var(--accent);background:var(--accent-light);
+}
+.nav-btn.today-btn:active{background:#bfdbfe}
+
+/* ===== TABS ===== */
+.tabs{
+  display:flex;padding:0 20px;gap:0;flex-shrink:0;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+}
+.tab{
+  flex:1;padding:12px 0;text-align:center;
+  font-size:0.85rem;font-weight:600;color:var(--text3);
+  position:relative;transition:color .2s;
+}
+.tab.active{color:var(--accent)}
+.tab.active::after{
+  content:'';position:absolute;bottom:-1px;left:15%;width:70%;
+  height:2.5px;background:var(--accent);border-radius:2px;
+}
+
+/* ===== CONTENT ===== */
+.content{
+  flex:1;overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain;
+  padding:0 16px;
+  padding-bottom:calc(40px + var(--safe-bottom));
+}
+.view{display:none}
+.view.active{display:block}
+
+/* ===== CARDS ===== */
+.card{
+  background:var(--surface);border-radius:var(--radius);
+  padding:20px;margin:14px 0;
+  box-shadow:var(--shadow);
+  border:1px solid var(--border);
+}
+.card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:16px;
+}
+.card-title{
+  font-size:0.78rem;font-weight:700;text-transform:uppercase;
+  letter-spacing:0.06em;color:var(--text2);
+}
+.card-badge{
+  font-size:0.73rem;font-weight:600;
+  padding:4px 12px;border-radius:20px;
+}
+.card-badge.green{color:var(--green);background:var(--green-light)}
+.card-badge.blue{color:var(--accent);background:var(--accent-light)}
+
+/* ===== PROGRESS RING ===== */
+.progress-ring-wrap{display:flex;align-items:center;justify-content:center;margin:4px 0 18px}
+.progress-ring{position:relative;width:90px;height:90px}
+.progress-ring svg{transform:rotate(-90deg);display:block}
+.progress-ring circle{fill:none;stroke-width:7}
+.progress-ring .ring-bg{stroke:var(--bg)}
+.progress-ring .ring-fg{stroke:var(--green);stroke-linecap:round;transition:stroke-dashoffset .5s ease}
+.progress-ring .ring-pct{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:1.45rem;font-weight:800;letter-spacing:-0.03em;color:var(--text);
+}
+
+/* ===== CHECKLIST ===== */
+.check-item{
+  display:flex;align-items:center;
+  padding:0;margin:0;
+  border:none;background:none;width:100%;
+  text-align:left;gap:14px;
+  min-height:52px;
+  border-bottom:1px solid var(--border);
+}
+.check-item:last-child{border-bottom:none}
+.check-item:active{background:var(--bg);border-radius:8px;margin:0 -8px;padding:0 8px;width:calc(100% + 16px)}
+.check-icon{
+  width:30px;height:30px;border-radius:9px;
+  border:2.5px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all .2s;
+  background:var(--surface);
+}
+.check-item.done .check-icon{
+  background:var(--green);border-color:var(--green);
+}
+.check-item.done .check-icon svg{display:block}
+.check-item.done .check-label{
+  text-decoration:line-through;color:var(--text3);
+}
+.check-icon svg{display:none;width:14px;height:14px}
+.check-label{font-size:0.95rem;font-weight:500;flex:1;color:var(--text)}
+.check-time{font-size:0.75rem;color:var(--text3);font-weight:500}
+
+/* ===== WORK ===== */
+.work-row{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 0;
+  border-bottom:1px solid var(--border);
+}
+.work-row:last-child{border-bottom:none}
+.work-label{flex:1;font-size:0.95rem;font-weight:500}
+.hours-input{
+  width:76px;height:46px;text-align:center;
+  font-size:1.1rem;font-weight:700;
+  background:var(--bg);border:1.5px solid var(--border2);
+  border-radius:var(--radius-sm);padding:0;
+  color:var(--text);
+}
+.hours-input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-light)}
+.ai-toggle{
+  width:30px;height:30px;border-radius:9px;
+  border:2.5px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  transition:all .2s;background:var(--surface);
+}
+.ai-toggle.checked{background:var(--accent);border-color:var(--accent)}
+.ai-toggle.checked svg{display:block}
+.ai-toggle svg{display:none;width:14px;height:14px}
+
+.weekly-totals{display:flex;gap:10px;margin-top:16px}
+.weekly-stat{
+  flex:1;background:var(--bg);border-radius:var(--radius-sm);
+  padding:12px;text-align:center;
+}
+.weekly-stat-val{font-size:1.4rem;font-weight:800;color:var(--accent)}
+.weekly-stat-label{
+  font-size:0.65rem;color:var(--text3);font-weight:600;
+  text-transform:uppercase;margin-top:3px;letter-spacing:0.04em;
+}
+
+/* ===== ENERGY ===== */
+.energy-display{text-align:center;margin-bottom:12px}
+.energy-emoji{font-size:1.6rem;margin-bottom:4px}
+.energy-number{font-size:2.2rem;font-weight:800;color:var(--accent);line-height:1}
+.energy-label{font-size:0.7rem;color:var(--text3);font-weight:600;text-transform:uppercase;margin-top:2px}
+.energy-slider{
+  -webkit-appearance:none;width:100%;height:8px;border-radius:4px;
+  background:var(--surface2);outline:none;margin:16px 0 8px;
+}
+.energy-slider::-webkit-slider-thumb{
+  -webkit-appearance:none;width:34px;height:34px;
+  border-radius:50%;background:var(--accent);
+  border:4px solid var(--surface);
+  box-shadow:var(--shadow-md), 0 0 0 1px var(--border);
+  cursor:pointer;
+}
+.slider-labels{display:flex;justify-content:space-between}
+.slider-label{font-size:0.7rem;color:var(--text3);font-weight:600}
+
+/* ===== NOTES ===== */
+.notes-input{
+  width:100%;min-height:88px;padding:14px;
+  font-size:0.95rem;line-height:1.5;
+  background:var(--bg);border:1.5px solid var(--border2);
+  border-radius:var(--radius-sm);resize:vertical;
+  color:var(--text);
+}
+.notes-input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-light)}
+.notes-input::placeholder{color:var(--text3)}
+
+/* ===== WEEKLY VIEW ===== */
+.week-summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px}
+.week-stat-card{
+  background:var(--bg);border-radius:var(--radius-sm);
+  padding:16px 12px;text-align:center;
+}
+.week-stat-val{font-size:1.7rem;font-weight:800;letter-spacing:-0.03em}
+.week-stat-val.c-green{color:var(--green)}
+.week-stat-val.c-blue{color:var(--accent)}
+.week-stat-val.c-orange{color:var(--orange)}
+.week-stat-label{
+  font-size:0.68rem;color:var(--text2);font-weight:600;
+  text-transform:uppercase;margin-top:4px;letter-spacing:0.04em;
+}
+
+.week-days{display:flex;flex-direction:column;gap:6px}
+.week-day-row{
+  display:flex;align-items:center;gap:10px;
+  background:var(--bg);border-radius:var(--radius-sm);
+  padding:12px 14px;transition:background .15s;
+}
+.week-day-row:active{background:var(--surface2)}
+.week-day-name{font-size:0.8rem;font-weight:700;width:34px;color:var(--text2)}
+.week-day-date{font-size:0.78rem;color:var(--text3);width:28px;text-align:center}
+.week-day-bar{flex:1;height:8px;background:var(--surface);border-radius:4px;overflow:hidden;border:1px solid var(--border)}
+.week-day-fill{height:100%;border-radius:3px;transition:width .4s ease}
+.week-day-pct{font-size:0.75rem;font-weight:700;width:34px;text-align:right}
+.week-day-info{font-size:0.7rem;color:var(--text3);width:56px;text-align:right;white-space:nowrap}
+.week-day-today{background:var(--accent-light);border:1px solid #bfdbfe}
+
+/* ===== WORKOUT DETAIL ===== */
+.workout-detail{
+  overflow:hidden;max-height:0;opacity:0;
+  transition:max-height .3s ease, opacity .25s ease, padding .3s ease;
+  padding:0 0 0 44px;
+}
+.workout-detail.open{
+  max-height:140px;opacity:1;padding:6px 0 10px 44px;
+}
+.workout-detail-row{
+  display:flex;align-items:center;gap:10px;margin-bottom:8px;
+}
+.workout-detail-row:last-child{margin-bottom:0}
+.workout-select{
+  flex:1;height:44px;padding:0 32px 0 12px;
+  font-size:0.88rem;font-weight:500;color:var(--text);
+  background:var(--bg);border:1.5px solid var(--border2);
+  border-radius:var(--radius-sm);
+  -webkit-appearance:none;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+}
+.workout-select:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-light)}
+.workout-dur-label{font-size:0.8rem;color:var(--text2);font-weight:500;white-space:nowrap}
+.workout-dur-input{
+  width:68px;height:44px;text-align:center;
+  font-size:1rem;font-weight:700;
+  background:var(--bg);border:1.5px solid var(--border2);
+  border-radius:var(--radius-sm);padding:0;color:var(--text);
+}
+.workout-dur-input:focus{border-color:var(--accent);outline:none;box-shadow:0 0 0 3px var(--accent-light)}
+.workout-dur-unit{font-size:0.8rem;color:var(--text3);font-weight:500}
+
+/* ===== WEEKLY WORKOUT COLUMN ===== */
+.week-day-workout{
+  font-size:0.62rem;color:var(--text2);font-weight:600;
+  width:62px;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  line-height:1.2;
+}
+.week-day-workout .wk-type{display:block;color:var(--text2)}
+.week-day-workout .wk-dur{display:block;color:var(--text3);font-weight:500}
+.week-day-workout .wk-skip{display:block;color:var(--red);font-weight:600}
+
+/* ===== ANIMATIONS ===== */
+@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+.pop{animation:pop .25s ease}
+
+/* ===== BOTTOM SPACER ===== */
+.bottom-spacer{height:30px}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-date" id="headerDate">Today</div>
+    <div class="header-sub" id="headerSub"></div>
+  </div>
+  <div class="nav-arrows">
+    <button class="nav-btn" id="prevDay" aria-label="Previous day">&lsaquo;</button>
+    <button class="nav-btn today-btn" id="todayBtn">Today</button>
+    <button class="nav-btn" id="nextDay" aria-label="Next day">&rsaquo;</button>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tabs">
+  <button class="tab active" data-tab="today" id="tabToday">Today</button>
+  <button class="tab" data-tab="week" id="tabWeek">Week</button>
+</div>
+
+<!-- SCROLLABLE CONTENT -->
+<div class="content" id="contentArea">
+
+  <!-- ========== TODAY VIEW ========== -->
+  <div class="view active" id="todayView">
+
+    <!-- Morning Routine Card -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Morning Routine</span>
+        <span class="card-badge green" id="morningCount">0/8</span>
+      </div>
+      <div class="progress-ring-wrap">
+        <div class="progress-ring">
+          <svg width="90" height="90" viewBox="0 0 90 90">
+            <circle class="ring-bg" cx="45" cy="45" r="38"/>
+            <circle class="ring-fg" id="progressCircle" cx="45" cy="45" r="38"
+              stroke-dasharray="238.76" stroke-dashoffset="238.76"/>
+          </svg>
+          <div class="ring-pct" id="progressPct">0%</div>
+        </div>
+      </div>
+      <div id="checklist"></div>
+    </div>
+
+    <!-- Work Card -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Work</span>
+      </div>
+      <div class="work-row">
+        <span class="work-label">Phil work today</span>
+        <input type="number" class="hours-input" id="philHours"
+          min="0" max="24" step="0.5" placeholder="hrs" inputmode="decimal">
+      </div>
+      <div class="work-row">
+        <span class="work-label">AI learning (2hrs)</span>
+        <button class="ai-toggle" id="aiCheckbox" aria-label="Toggle AI learning">
+          <svg viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="2.5,7 5.5,10.5 11.5,3.5"/>
+          </svg>
+        </button>
+      </div>
+      <div class="weekly-totals">
+        <div class="weekly-stat">
+          <div class="weekly-stat-val" id="weekPhilTotal">0</div>
+          <div class="weekly-stat-label">Phil hrs/wk</div>
+        </div>
+        <div class="weekly-stat">
+          <div class="weekly-stat-val" id="weekAiTotal">0</div>
+          <div class="weekly-stat-label">AI days/wk</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- End of Day Card -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">End of Day</span>
+      </div>
+      <div class="energy-display">
+        <div class="energy-emoji" id="energyEmoji">😐</div>
+        <div class="energy-number" id="energyVal">3</div>
+        <div class="energy-label">Energy Level</div>
+      </div>
+      <input type="range" class="energy-slider" id="energySlider" min="1" max="5" value="3" step="1">
+      <div class="slider-labels">
+        <span class="slider-label">Low</span>
+        <span class="slider-label">High</span>
+      </div>
+    </div>
+
+    <!-- Notes Card -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Notes</span>
+      </div>
+      <textarea class="notes-input" id="notesInput" placeholder="Quick thoughts..." rows="3"></textarea>
+    </div>
+
+    <div class="bottom-spacer"></div>
+  </div>
+
+  <!-- ========== WEEK VIEW ========== -->
+  <div class="view" id="weekView">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Weekly Summary</span>
+        <span class="card-badge blue" id="weekRange"></span>
+      </div>
+      <div class="week-summary">
+        <div class="week-stat-card">
+          <div class="week-stat-val c-green" id="wsRoutine">-</div>
+          <div class="week-stat-label">Avg Routine</div>
+        </div>
+        <div class="week-stat-card">
+          <div class="week-stat-val c-blue" id="wsPhil">0h</div>
+          <div class="week-stat-label">Phil Hours</div>
+        </div>
+        <div class="week-stat-card">
+          <div class="week-stat-val c-orange" id="wsAi">0/7</div>
+          <div class="week-stat-label">AI Sessions</div>
+        </div>
+        <div class="week-stat-card">
+          <div class="week-stat-val c-blue" id="wsEnergy">-</div>
+          <div class="week-stat-label">Avg Energy</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Daily Breakdown</span>
+      </div>
+      <div class="week-days" id="weekDays"></div>
+    </div>
+    <div class="bottom-spacer"></div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  /* ===== CONFIG ===== */
+  var ITEMS = [
+    { id: 'wake',     label: 'Wake at 5:30am',    time: '5:30'    },
+    { id: 'stretch',  label: '5min stretching',    time: '5min'    },
+    { id: 'workout',  label: '45-60min workout',   time: '45-60min'},
+    { id: 'shower',   label: 'Cold shower',        time: ''        },
+    { id: 'smoothie', label: 'Protein smoothie',   time: ''        },
+    { id: 'meditate', label: '5min meditation',    time: '5min'    },
+    { id: 'journal',  label: '10min journal',      time: '10min'   },
+    { id: 'read',     label: '25min reading',      time: '25min'   }
+  ];
+  var WORKOUT_TYPES = [
+    { value: '',             label: 'Select workout...' },
+    { value: 'zone2',        label: 'Zone 2 Cardio (45-60 min)' },
+    { value: 'resistance',   label: 'Resistance Training (45 min)' },
+    { value: 'hiit',         label: 'HIIT (30 min)' },
+    { value: 'explosive',    label: 'Explosive/Eccentric (30 min)' },
+    { value: 'recovery',     label: 'Active Recovery (light movement)' },
+    { value: 'rest',         label: 'Rest Day' }
+  ];
+  var WORKOUT_SHORT = {
+    zone2: 'Zone 2', resistance: 'Resist', hiit: 'HIIT',
+    explosive: 'Explo', recovery: 'Recovery', rest: 'Rest'
+  };
+  var EMOJIS = ['', '😫', '😔', '😐', '😊', '💪'];
+  var CIRC = 2 * Math.PI * 38; // ~238.76
+
+  /* ===== DATE HELPERS ===== */
+  function dkey(d) {
+    return d.getFullYear() + '-' +
+      String(d.getMonth() + 1).padStart(2, '0') + '-' +
+      String(d.getDate()).padStart(2, '0');
+  }
+  function isToday(d) { return dkey(d) === dkey(new Date()); }
+  function dayName(d) { return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]; }
+  function shortDate(d) {
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return months[d.getMonth()] + ' ' + d.getDate();
+  }
+  function fullDate(d) {
+    var days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+    var months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    return days[d.getDay()] + ', ' + months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  }
+  function getMonday(d) {
+    var dt = new Date(d);
+    var day = dt.getDay();
+    var diff = (day === 0 ? 6 : day - 1);
+    dt.setDate(dt.getDate() - diff);
+    return dt;
+  }
+
+  /* ===== STORAGE ===== */
+  var SKEY = 'dailyTracker_v2';
+  function loadAll() {
+    try { return JSON.parse(localStorage.getItem(SKEY)) || {}; }
+    catch(e) { return {}; }
+  }
+  function saveAll(obj) { localStorage.setItem(SKEY, JSON.stringify(obj)); }
+  function loadDay(k) {
+    var all = loadAll();
+    if (all[k]) return all[k];
+    return { morning: {}, philHours: 0, aiLearning: false, energy: 3, notes: '', workoutType: '', workoutDuration: '' };
+  }
+  function saveDay(k, data) {
+    var all = loadAll();
+    all[k] = data;
+    saveAll(all);
+  }
+
+  /* ===== STATE ===== */
+  var curDate = new Date();
+  var curTab = 'today';
+
+  /* ===== DOM HELPERS ===== */
+  function el(id) { return document.getElementById(id); }
+  var checkSVG = '<svg viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="2.5,7 5.5,10.5 11.5,3.5"/></svg>';
+
+  /* ===== RENDER TODAY ===== */
+  function render() {
+    var key = dkey(curDate);
+    var data = loadDay(key);
+    var today = isToday(curDate);
+
+    // Header
+    el('headerDate').textContent = today ? 'Today' : shortDate(curDate);
+    var subText = today ? fullDate(curDate) : dayName(curDate) + ', ' + curDate.getFullYear();
+    var sub = el('headerSub');
+    sub.textContent = '';
+
+    var span = document.createElement('span');
+    span.textContent = subText;
+    sub.appendChild(span);
+
+    // Streak
+    var streak = calcStreak();
+    if (streak > 0) {
+      var badge = document.createElement('span');
+      badge.className = 'streak-badge';
+      badge.textContent = '\uD83D\uDD25 ' + streak + ' day' + (streak > 1 ? 's' : '');
+      sub.appendChild(badge);
+    }
+
+    // Today button
+    el('todayBtn').style.display = today ? 'none' : '';
+
+    // === Morning checklist ===
+    var list = el('checklist');
+    list.innerHTML = '';
+    var done = 0;
+
+    for (var i = 0; i < ITEMS.length; i++) {
+      (function(item) {
+        var checked = !!(data.morning && data.morning[item.id]);
+        if (checked) done++;
+
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'check-item' + (checked ? ' done' : '');
+
+        var icon = document.createElement('span');
+        icon.className = 'check-icon';
+        icon.innerHTML = checkSVG;
+
+        var lbl = document.createElement('span');
+        lbl.className = 'check-label';
+        lbl.textContent = item.label;
+
+        btn.appendChild(icon);
+        btn.appendChild(lbl);
+
+        if (item.time) {
+          var tm = document.createElement('span');
+          tm.className = 'check-time';
+          tm.textContent = item.time;
+          btn.appendChild(tm);
+        }
+
+        btn.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (!data.morning) data.morning = {};
+          data.morning[item.id] = !data.morning[item.id];
+          saveDay(key, data);
+          icon.classList.add('pop');
+          setTimeout(function() { icon.classList.remove('pop'); }, 250);
+          render();
+        });
+
+        list.appendChild(btn);
+
+        // Workout detail section after workout checkbox
+        if (item.id === 'workout') {
+          var detail = document.createElement('div');
+          detail.className = 'workout-detail' + (checked ? ' open' : '');
+
+          // Workout type dropdown
+          var typeRow = document.createElement('div');
+          typeRow.className = 'workout-detail-row';
+          var sel = document.createElement('select');
+          sel.className = 'workout-select';
+          sel.setAttribute('aria-label', 'Workout type');
+          for (var w = 0; w < WORKOUT_TYPES.length; w++) {
+            var opt = document.createElement('option');
+            opt.value = WORKOUT_TYPES[w].value;
+            opt.textContent = WORKOUT_TYPES[w].label;
+            if ((data.workoutType || '') === WORKOUT_TYPES[w].value) opt.selected = true;
+            sel.appendChild(opt);
+          }
+          sel.addEventListener('change', function() {
+            data.workoutType = this.value;
+            saveDay(key, data);
+          });
+          typeRow.appendChild(sel);
+          detail.appendChild(typeRow);
+
+          // Duration row
+          var durRow = document.createElement('div');
+          durRow.className = 'workout-detail-row';
+          var durLabel = document.createElement('span');
+          durLabel.className = 'workout-dur-label';
+          durLabel.textContent = 'Minutes:';
+          var durInput = document.createElement('input');
+          durInput.type = 'number';
+          durInput.className = 'workout-dur-input';
+          durInput.min = '0';
+          durInput.max = '180';
+          durInput.placeholder = '—';
+          durInput.inputMode = 'numeric';
+          durInput.setAttribute('aria-label', 'Workout duration in minutes');
+          durInput.value = data.workoutDuration || '';
+          durInput.addEventListener('input', function() {
+            data.workoutDuration = parseInt(this.value) || '';
+            saveDay(key, data);
+          });
+          durInput.addEventListener('change', function() {
+            data.workoutDuration = parseInt(this.value) || '';
+            saveDay(key, data);
+          });
+          var durUnit = document.createElement('span');
+          durUnit.className = 'workout-dur-unit';
+          durUnit.textContent = 'min';
+          durRow.appendChild(durLabel);
+          durRow.appendChild(durInput);
+          durRow.appendChild(durUnit);
+          detail.appendChild(durRow);
+
+          list.appendChild(detail);
+        }
+      })(ITEMS[i]);
+    }
+
+    // Progress
+    el('morningCount').textContent = done + '/8';
+    var pct = Math.round((done / 8) * 100);
+    el('progressCircle').style.strokeDashoffset = CIRC - (pct / 100) * CIRC;
+    el('progressPct').textContent = pct + '%';
+    if (pct === 100) {
+      el('progressCircle').style.stroke = 'var(--green)';
+    } else {
+      el('progressCircle').style.stroke = 'var(--accent)';
+    }
+
+    // Work
+    var phInput = el('philHours');
+    phInput.value = data.philHours ? data.philHours : '';
+
+    var aiBtn = el('aiCheckbox');
+    if (data.aiLearning) {
+      aiBtn.classList.add('checked');
+    } else {
+      aiBtn.classList.remove('checked');
+    }
+
+    updateWeekTotals();
+
+    // Energy
+    var eVal = data.energy || 3;
+    el('energySlider').value = eVal;
+    el('energyVal').textContent = eVal;
+    el('energyEmoji').textContent = EMOJIS[eVal];
+
+    // Notes
+    el('notesInput').value = data.notes || '';
+
+    // Week view if active
+    if (curTab === 'week') renderWeek();
+  }
+
+  /* ===== WEEKLY MINI TOTALS ===== */
+  function updateWeekTotals() {
+    var all = loadAll();
+    var monday = getMonday(curDate);
+    var philT = 0;
+    var aiT = 0;
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      var dd = all[dkey(d)];
+      if (dd) {
+        philT += parseFloat(dd.philHours) || 0;
+        if (dd.aiLearning) aiT++;
+      }
+    }
+    el('weekPhilTotal').textContent = philT % 1 === 0 ? philT : philT.toFixed(1);
+    el('weekAiTotal').textContent = aiT;
+  }
+
+  /* ===== STREAK ===== */
+  function calcStreak() {
+    var all = loadAll();
+    var streak = 0;
+    var d = new Date();
+    // Check today
+    var td = all[dkey(d)];
+    var tdone = 0;
+    if (td && td.morning) {
+      var keys = Object.keys(td.morning);
+      for (var i = 0; i < keys.length; i++) {
+        if (td.morning[keys[i]]) tdone++;
+      }
+    }
+    if (tdone < 8) d.setDate(d.getDate() - 1);
+
+    while (true) {
+      var k = dkey(d);
+      var dd = all[k];
+      if (!dd || !dd.morning) break;
+      var count = 0;
+      var mk = Object.keys(dd.morning);
+      for (var j = 0; j < mk.length; j++) {
+        if (dd.morning[mk[j]]) count++;
+      }
+      if (count < 8) break;
+      streak++;
+      d.setDate(d.getDate() - 1);
+    }
+    return streak;
+  }
+
+  /* ===== RENDER WEEK ===== */
+  function renderWeek() {
+    var all = loadAll();
+    var monday = getMonday(curDate);
+    var sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+
+    el('weekRange').textContent = shortDate(monday) + ' - ' + shortDate(sunday);
+
+    var totalRoutine = 0, totalPhil = 0, totalAi = 0, totalEnergy = 0;
+    var daysWithEnergy = 0, daysTracked = 0;
+    var days = [];
+
+    for (var i = 0; i < 7; i++) {
+      var d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      var k = dkey(d);
+      var dd = all[k];
+
+      var morningDone = 0;
+      if (dd && dd.morning) {
+        var mk = Object.keys(dd.morning);
+        for (var j = 0; j < mk.length; j++) {
+          if (dd.morning[mk[j]]) morningDone++;
+        }
+      }
+      var pct = Math.round((morningDone / 8) * 100);
+      var phil = dd ? (parseFloat(dd.philHours) || 0) : 0;
+      var ai = dd ? !!dd.aiLearning : false;
+      var energy = dd ? (dd.energy || 0) : 0;
+      var wkType = dd ? (dd.workoutType || '') : '';
+      var wkDur = dd ? (dd.workoutDuration || '') : '';
+      var wkChecked = dd && dd.morning ? !!dd.morning.workout : false;
+      var hasData = !!(dd && (morningDone > 0 || phil > 0 || ai || (dd.notes && dd.notes.length > 0)));
+
+      if (hasData) {
+        daysTracked++;
+        totalRoutine += pct;
+        totalPhil += phil;
+        if (ai) totalAi++;
+        if (energy > 0) { totalEnergy += energy; daysWithEnergy++; }
+      }
+
+      days.push({
+        date: d, key: k, pct: pct, phil: phil, ai: ai,
+        energy: energy, hasData: hasData,
+        wkType: wkType, wkDur: wkDur, wkChecked: wkChecked,
+        isFuture: d.getTime() > new Date().getTime(),
+        isToday: dkey(d) === dkey(new Date())
+      });
+    }
+
+    el('wsRoutine').textContent = daysTracked ? Math.round(totalRoutine / daysTracked) + '%' : '-';
+    el('wsPhil').textContent = (totalPhil % 1 === 0 ? totalPhil : totalPhil.toFixed(1)) + 'h';
+    el('wsAi').textContent = totalAi + '/7';
+    el('wsEnergy').textContent = daysWithEnergy ? (totalEnergy / daysWithEnergy).toFixed(1) : '-';
+
+    var container = el('weekDays');
+    container.innerHTML = '';
+
+    for (var x = 0; x < days.length; x++) {
+      (function(dd) {
+        var row = document.createElement('button');
+        row.type = 'button';
+        var rowClasses = 'week-day-row';
+        if (dd.isToday) rowClasses += ' week-day-today';
+        row.className = rowClasses;
+        if (dd.isFuture) row.style.opacity = '0.35';
+
+        var color;
+        if (!dd.hasData) color = 'var(--text3)';
+        else if (dd.pct === 100) color = 'var(--green)';
+        else if (dd.pct >= 50) color = 'var(--accent)';
+        else color = 'var(--red)';
+
+        var nameSpan = document.createElement('span');
+        nameSpan.className = 'week-day-name';
+        nameSpan.textContent = dayName(dd.date);
+        if (dd.isToday) nameSpan.style.color = 'var(--accent)';
+
+        var dateSpan = document.createElement('span');
+        dateSpan.className = 'week-day-date';
+        dateSpan.textContent = dd.date.getDate();
+
+        var barWrap = document.createElement('div');
+        barWrap.className = 'week-day-bar';
+        var barFill = document.createElement('div');
+        barFill.className = 'week-day-fill';
+        barFill.style.width = dd.pct + '%';
+        barFill.style.background = color;
+        barWrap.appendChild(barFill);
+
+        var pctSpan = document.createElement('span');
+        pctSpan.className = 'week-day-pct';
+        pctSpan.style.color = dd.hasData ? color : 'var(--text3)';
+        pctSpan.textContent = dd.hasData ? dd.pct + '%' : '-';
+
+        var infoSpan = document.createElement('span');
+        infoSpan.className = 'week-day-info';
+        var infoText = '';
+        if (dd.phil) infoText += dd.phil + 'h';
+        if (dd.ai) infoText += (infoText ? ' ' : '') + '\uD83D\uDCDA';
+        infoSpan.textContent = infoText;
+
+        // Workout column
+        var wkSpan = document.createElement('span');
+        wkSpan.className = 'week-day-workout';
+        if (dd.wkChecked && dd.wkType) {
+          var typeEl = document.createElement('span');
+          typeEl.className = 'wk-type';
+          typeEl.textContent = WORKOUT_SHORT[dd.wkType] || dd.wkType;
+          wkSpan.appendChild(typeEl);
+          if (dd.wkDur) {
+            var durEl = document.createElement('span');
+            durEl.className = 'wk-dur';
+            durEl.textContent = dd.wkDur + 'min';
+            wkSpan.appendChild(durEl);
+          }
+        } else if (dd.hasData && !dd.wkChecked && !dd.isFuture) {
+          var skipEl = document.createElement('span');
+          skipEl.className = 'wk-skip';
+          skipEl.textContent = 'Skipped';
+          wkSpan.appendChild(skipEl);
+        }
+
+        row.appendChild(nameSpan);
+        row.appendChild(dateSpan);
+        row.appendChild(barWrap);
+        row.appendChild(pctSpan);
+        row.appendChild(wkSpan);
+        row.appendChild(infoSpan);
+
+        row.addEventListener('click', function(e) {
+          e.preventDefault();
+          curDate = new Date(dd.date);
+          curTab = 'today';
+          switchTab('today');
+          render();
+        });
+
+        container.appendChild(row);
+      })(days[x]);
+    }
+  }
+
+  /* ===== TAB SWITCHING ===== */
+  function switchTab(name) {
+    curTab = name;
+    var tabs = document.querySelectorAll('.tab');
+    for (var i = 0; i < tabs.length; i++) {
+      if (tabs[i].getAttribute('data-tab') === name) {
+        tabs[i].classList.add('active');
+      } else {
+        tabs[i].classList.remove('active');
+      }
+    }
+    var views = document.querySelectorAll('.view');
+    for (var j = 0; j < views.length; j++) {
+      if (views[j].id === name + 'View') {
+        views[j].classList.add('active');
+      } else {
+        views[j].classList.remove('active');
+      }
+    }
+    // Scroll to top
+    el('contentArea').scrollTop = 0;
+  }
+
+  /* ===== EVENT LISTENERS ===== */
+
+  // Tabs
+  el('tabToday').addEventListener('click', function(e) {
+    e.preventDefault();
+    switchTab('today');
+    render();
+  });
+  el('tabWeek').addEventListener('click', function(e) {
+    e.preventDefault();
+    switchTab('week');
+    render();
+  });
+
+  // Navigation
+  el('prevDay').addEventListener('click', function(e) {
+    e.preventDefault();
+    curDate.setDate(curDate.getDate() - 1);
+    render();
+  });
+  el('nextDay').addEventListener('click', function(e) {
+    e.preventDefault();
+    curDate.setDate(curDate.getDate() + 1);
+    render();
+  });
+  el('todayBtn').addEventListener('click', function(e) {
+    e.preventDefault();
+    curDate = new Date();
+    render();
+  });
+
+  // Phil hours - save on every change
+  el('philHours').addEventListener('input', function() {
+    var key = dkey(curDate);
+    var data = loadDay(key);
+    data.philHours = parseFloat(this.value) || 0;
+    saveDay(key, data);
+    updateWeekTotals();
+  });
+  el('philHours').addEventListener('change', function() {
+    var key = dkey(curDate);
+    var data = loadDay(key);
+    data.philHours = parseFloat(this.value) || 0;
+    saveDay(key, data);
+    updateWeekTotals();
+  });
+
+  // AI checkbox - use button click
+  el('aiCheckbox').addEventListener('click', function(e) {
+    e.preventDefault();
+    var key = dkey(curDate);
+    var data = loadDay(key);
+    data.aiLearning = !data.aiLearning;
+    saveDay(key, data);
+    this.classList.toggle('checked');
+    this.classList.add('pop');
+    var self = this;
+    setTimeout(function() { self.classList.remove('pop'); }, 250);
+    updateWeekTotals();
+  });
+
+  // Energy slider - both input and change for iOS
+  function handleEnergy() {
+    var val = parseInt(el('energySlider').value);
+    el('energyVal').textContent = val;
+    el('energyEmoji').textContent = EMOJIS[val];
+    var key = dkey(curDate);
+    var data = loadDay(key);
+    data.energy = val;
+    saveDay(key, data);
+  }
+  el('energySlider').addEventListener('input', handleEnergy);
+  el('energySlider').addEventListener('change', handleEnergy);
+
+  // Notes - debounced save
+  var notesTimer = null;
+  el('notesInput').addEventListener('input', function() {
+    var self = this;
+    if (notesTimer) clearTimeout(notesTimer);
+    notesTimer = setTimeout(function() {
+      var key = dkey(curDate);
+      var data = loadDay(key);
+      data.notes = self.value;
+      saveDay(key, data);
+    }, 400);
+  });
+  el('notesInput').addEventListener('blur', function() {
+    var key = dkey(curDate);
+    var data = loadDay(key);
+    data.notes = this.value;
+    saveDay(key, data);
+  });
+
+  /* ===== PREVENT iOS OVERSCROLL ON HEADER/TABS ===== */
+  var fixedEls = document.querySelectorAll('.header, .tabs');
+  for (var f = 0; f < fixedEls.length; f++) {
+    fixedEls[f].addEventListener('touchmove', function(e) {
+      e.preventDefault();
+    }, { passive: false });
+  }
+
+  /* ===== INIT ===== */
+  render();
+
+})();
+</script>
+</body>
+</html>
